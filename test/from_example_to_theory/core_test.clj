@@ -61,6 +61,6 @@
                       to-currency (second currencies)
                       money {:currency from-currency :amount amount}
                       bank {from-currency from-rate to-currency to-rate}]
-                  (if (or (= from-rate to-rate) (= (:amount money) 0 ))
+                  (if (or (= from-rate to-rate) (zero? (:amount money)))
                     (= (:amount (exchange bank money from-currency)) (:amount (exchange bank money to-currency)))
                     (not= (:amount (exchange bank money from-currency)) (:amount (exchange bank money to-currency)))))))
