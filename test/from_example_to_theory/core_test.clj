@@ -47,7 +47,7 @@
                  currencies (currencies)]
                 (let [from-currency (first currencies)
                       to-currency (second currencies)
-                      money {:currency from-currency :amount amount}
+                      money (make from-currency amount)
                       bank {from-currency from-rate to-currency to-rate}]
                   (= (exchange bank (exchange bank money to-currency) from-currency) money)
                   (= (exchange bank (exchange bank money from-currency) from-currency) money))))
@@ -59,7 +59,7 @@
                  currencies (currencies)]
                 (let [from-currency (first currencies)
                       to-currency (second currencies)
-                      money {:currency from-currency :amount amount}
+                      money (make from-currency amount)
                       bank {from-currency from-rate to-currency to-rate}]
                   (if (or (= from-rate to-rate) (zero? (:amount money)))
                     (= (:amount (exchange bank money from-currency)) (:amount (exchange bank money to-currency)))
