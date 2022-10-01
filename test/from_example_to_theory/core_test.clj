@@ -32,6 +32,9 @@
 (defn currencies []
   (gen/shuffle [:$ :€]))
 
+(defn amounts []
+  (gen/fmap #(* 100 %) gen/nat))
+
 (defspec division-as-identity-for-multiply 100
   (prop/for-all [a gen/nat
                  t (int-non-zero)]
@@ -40,7 +43,7 @@
 (defspec convertions-as-identity-for-conversions 100
   (prop/for-all [from-rate (int-non-zero)
                  to-rate (int-non-zero)
-                 amount (gen/fmap #(* 100 %) gen/nat)
+                 amount (amounts)
                  currencies (currencies)]
                 (let [from-currency (first currencies)
                       to-currency (second currencies)
@@ -52,12 +55,12 @@
 (defspec excludents-for-conversions 100
   (prop/for-all [from-rate (int-non-zero)
                  to-rate (int-non-zero)
-                 amount (gen/fmap #(* 100 %) (int-non-zero))
-                 currencies (gen/shuffle [:$ :€])]
+                 amount (amounts)
+                 currencies (currencies)]
                 (let [from-currency (first currencies)
                       to-currency (second currencies)
                       money {:currency from-currency :amount amount}
                       bank {from-currency from-rate to-currency to-rate}]
-                  (if (= from-rate to-rate)
+                  (if (or (= from-rate to-rate) (= (:amount money) 0 ))
                     (= (:amount (exchange bank money from-currency)) (:amount (exchange bank money to-currency)))
                     (not= (:amount (exchange bank money from-currency)) (:amount (exchange bank money to-currency)))))))
