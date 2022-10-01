@@ -5,10 +5,6 @@
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]))
 
-(deftest amounts
-  (testing "should get amount"
-    (is (= (amount (dollar 10)) 10))))
-
 (deftest making
   (testing "should make dollar"
     (is (= (:currency (dollar 0)) :$)))
@@ -30,15 +26,38 @@
       (is (= (exchange bank (euro 306) :$) (dollar 300)))
       (is (= (exchange bank (exchange bank (euro 100) :$) :€) (euro 100))))))
 
+(defn int-non-zero []
+  (gen/such-that #(> % 0) gen/nat))
+
+(defn currencies []
+  (gen/shuffle [:$ :€]))
+
 (defspec division-as-identity-for-multiply 100
   (prop/for-all [a gen/nat
-                 t (gen/such-that #(> % 0) gen/nat)]
+                 t (int-non-zero)]
                 (= (divide t (multiply t (euro a))) (euro a))))
 
 (defspec convertions-as-identity-for-conversions 100
-  (let [bank {:$ 100 :€ 102}]
-    (prop/for-all [amount (gen/fmap #(* 100 %) gen/nat)
-                   from-currency (gen/elements [:$ :€])
-                   to-currency (gen/elements [:$ :€])]
-                  (let [money {:currency from-currency :amount amount}]
-                    (= (exchange bank (exchange bank money to-currency) from-currency) money)))))
+  (prop/for-all [from-rate (int-non-zero)
+                 to-rate (int-non-zero)
+                 amount (gen/fmap #(* 100 %) gen/nat)
+                 currencies (currencies)]
+                (let [from-currency (first currencies)
+                      to-currency (second currencies)
+                      money {:currency from-currency :amount amount}
+                      bank {from-currency from-rate to-currency to-rate}]
+                  (= (exchange bank (exchange bank money to-currency) from-currency) money)
+                  (= (exchange bank (exchange bank money from-currency) from-currency) money))))
+
+(defspec excludents-for-conversions 100
+  (prop/for-all [from-rate (int-non-zero)
+                 to-rate (int-non-zero)
+                 amount (gen/fmap #(* 100 %) (int-non-zero))
+                 currencies (gen/shuffle [:$ :€])]
+                (let [from-currency (first currencies)
+                      to-currency (second currencies)
+                      money {:currency from-currency :amount amount}
+                      bank {from-currency from-rate to-currency to-rate}]
+                  (if (= from-rate to-rate)
+                    (= (:amount (exchange bank money from-currency)) (:amount (exchange bank money to-currency)))
+                    (not= (:amount (exchange bank money from-currency)) (:amount (exchange bank money to-currency)))))))

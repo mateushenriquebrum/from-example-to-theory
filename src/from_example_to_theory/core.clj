@@ -1,7 +1,5 @@
 (ns from-example-to-theory.core)
 
-(defn amount [amount] (:amount amount))
-
 (defn dollar [amount] {:currency :$ :amount amount})
 
 (defn euro [amount] {:currency :€ :amount amount})
