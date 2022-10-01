@@ -1,6 +1,7 @@
 # from-example-to-theory
 
 https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.70.1769&rep=rep1&type=pdf
+https://en.wikipedia.org/wiki/Law_of_thought
 
 Create a rate convertion
 Basic operation
